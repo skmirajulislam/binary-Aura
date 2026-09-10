@@ -1092,6 +1092,63 @@ a.explore-btn:hover {
     transform: translateY(-2px);
 }
 
+/* Animated Live Stat Badges */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 32px 0 36px;
+}
+
+.stat-card {
+    background: rgba(0, 20, 10, 0.7);
+    border: 1px solid rgba(0, 255, 128, 0.25);
+    border-radius: 10px;
+    padding: 18px 12px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ff99, transparent);
+    opacity: 0.6;
+}
+
+.stat-card:hover {
+    border-color: #00ff99;
+    background: rgba(0, 255, 128, 0.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 255, 153, 0.25);
+    transform: translateY(-4px);
+}
+
+.stat-number {
+    font-family: 'Share Tech Mono', monospace, monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00ff99;
+    text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+
+.stat-label {
+    font-size: 0.82rem;
+    color: #aaffee;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
 /* Tabs */
 .tabs-container {
     margin-top: 40px;
@@ -1261,6 +1318,55 @@ a.explore-btn:hover {
         radial-gradient(circle at 50% 50%, rgba(0, 255, 128, 0.05) 0%, transparent 70%);
 }
 
+/* Project Category Filter Pills */
+.project-filter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 auto 40px;
+    max-width: 800px;
+    position: relative;
+    z-index: 5;
+}
+
+.filter-btn {
+    background: rgba(0, 20, 10, 0.7);
+    border: 1px solid rgba(0, 255, 128, 0.3);
+    color: #aaffee;
+    padding: 8px 20px;
+    border-radius: 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace, monospace;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.filter-btn:hover {
+    color: #00ff99;
+    border-color: #00ff99;
+    background: rgba(0, 255, 128, 0.15);
+    box-shadow: 0 0 14px rgba(0, 255, 153, 0.35);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background: #00ff99;
+    color: #000000;
+    border-color: #00ff99;
+    box-shadow: 0 0 16px rgba(0, 255, 153, 0.55);
+}
+
+.project-card.card-hidden {
+    display: none !important;
+}
+
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -1280,6 +1386,8 @@ a.explore-btn:hover {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
                 box-shadow 0.4s ease, 
                 border-color 0.3s ease;
@@ -1331,6 +1439,42 @@ a.explore-btn:hover {
 
 .project-card:hover .project-image::after {
     left: 170%;
+}
+
+/* Cyber HUD Scanline Laser Sweep */
+.project-image .scanline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 204, 0.9), #00ff99, transparent);
+    box-shadow: 0 0 12px rgba(0, 255, 153, 0.8), 0 0 24px rgba(0, 255, 204, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.project-card:hover .scanline {
+    opacity: 1;
+    animation: scanlineSweep 1.8s linear infinite;
+}
+
+@keyframes scanlineSweep {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    85% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
 }
 
 .project-image img {
@@ -1660,6 +1804,16 @@ a.explore-btn:hover {
     }
 
     /* Projects */
+    .project-filter {
+        gap: 8px;
+        margin-bottom: 28px;
+    }
+
+    .filter-btn {
+        padding: 6px 14px;
+        font-size: 0.82rem;
+    }
+
     .project-grid {
         grid-template-columns: 1fr;
         gap: 25px;
@@ -1674,6 +1828,16 @@ a.explore-btn:hover {
     }
 
     /* About Section */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin: 22px 0 28px;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+    }
+
     .about-container {
         flex-direction: column;
         align-items: center;
@@ -1842,6 +2006,16 @@ a.explore-btn:hover {
     }
 
     /* Projects */
+    .project-filter {
+        gap: 6px;
+        margin-bottom: 22px;
+    }
+
+    .filter-btn {
+        padding: 5px 12px;
+        font-size: 0.76rem;
+    }
+
     .project-image {
         height: 180px;
     }
@@ -1876,6 +2050,24 @@ a.explore-btn:hover {
     }
 
     /* About */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 16px 0 24px;
+    }
+
+    .stat-card {
+        padding: 12px 6px;
+    }
+
+    .stat-number {
+        font-size: 1.45rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+    }
+
     .about-image-container {
         max-width: 250px;
         padding: 12px;
