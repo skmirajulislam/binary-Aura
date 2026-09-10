@@ -30,6 +30,7 @@
             <a href="#about">About</a>
             <a href="#contact">Contact</a>
         </div>
+        <div class="scroll-progress-bar" id="scrollProgressBar"></div>
     </div>
 
     <div class="aura" id="aura"></div>
@@ -708,17 +709,21 @@
 
         setInterval(spawnBinary, 120);
 
-        function toggleMenu() {
-            document.getElementById("navLinks").classList.toggle("show");
-        }
-
         const binaryDisplay = document.getElementById("binaryDisplay");
         const binarySequence = ["00", "01", "10", "11"];
         let index = 0;
         setInterval(() => {
-            binaryDisplay.textContent = binarySequence[index];
-            index = (index + 1) % binarySequence.length;
-        }, 1000);
+            if (binaryDisplay) {
+                binaryDisplay.style.opacity = '0.5';
+                binaryDisplay.style.filter = 'blur(2px)';
+                setTimeout(() => {
+                    binaryDisplay.textContent = binarySequence[index];
+                    binaryDisplay.style.opacity = '1';
+                    binaryDisplay.style.filter = 'blur(0px)';
+                    index = (index + 1) % binarySequence.length;
+                }, 100);
+            }
+        }, 1200);
 
         function toggleMenu() {
             const navLinks = document.getElementById("navLinks");
@@ -741,6 +746,17 @@
                     document.getElementById("navLinks").classList.remove("show");
                     document.querySelector(".menu-toggle").classList.remove("active");
                     document.body.style.overflow = "";
+                });
+            });
+
+            // Card cursor spotlight tracking
+            document.querySelectorAll('.project-card, .product-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
                 });
             });
         });
@@ -784,6 +800,139 @@
                 setTimeout(pulseEffect, 1000);
                 setInterval(pulseEffect, 5000);
             }
+
+            // Smooth scroll reveal animation
+            if ('IntersectionObserver' in window) {
+                const cardObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            cardObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+                document.querySelectorAll('.project-card, .product-card').forEach((el) => {
+                    el.classList.add('fade-in-card');
+                    cardObserver.observe(el);
+                });
+            }
+
+            // Bit-wise interactive cursor animation for BIG binary decorations (single flip, no flickering)
+            document.querySelectorAll('.binary-decoration').forEach(container => {
+                const text = container.textContent.trim();
+                container.innerHTML = '';
+
+                const bitSpans = text.split('').map(char => {
+                    const span = document.createElement('span');
+                    span.className = 'binary-bit';
+                    span.textContent = char;
+                    span.dataset.orig = char;
+                    container.appendChild(span);
+
+                    function flipBitOnce() {
+                        span.classList.add('bit-active');
+                        // Flip bit exactly once (0 -> 1 or 1 -> 0)
+                        const orig = span.dataset.orig;
+                        span.textContent = orig === '0' ? '1' : '0';
+                    }
+
+                    function restoreBit() {
+                        // Return back to original bit when cursor moves away
+                        span.textContent = span.dataset.orig;
+                        span.classList.remove('bit-active');
+                        span.classList.add('bit-settling');
+                        setTimeout(() => {
+                            span.classList.remove('bit-settling');
+                        }, 200);
+                    }
+
+                    span.addEventListener('mouseenter', flipBitOnce);
+                    span.addEventListener('mouseleave', restoreBit);
+                    span.addEventListener('touchstart', () => {
+                        flipBitOnce();
+                        setTimeout(restoreBit, 500);
+                    }, { passive: true });
+
+                    return span;
+                });
+
+                // Safety: when mouse leaves the big bits container, restore all to original
+                container.addEventListener('mouseleave', () => {
+                    bitSpans.forEach(span => {
+                        span.textContent = span.dataset.orig;
+                        span.classList.remove('bit-active');
+                        span.classList.remove('bit-settling');
+                    });
+                });
+            });
+
+            // Interactive Bit-Shuffling for Binary Pattern in Contact
+            document.querySelectorAll('.binary-pattern').forEach(el => {
+                const originalText = el.textContent.trim();
+                el.setAttribute('data-original', originalText);
+
+                let shuffleInterval = null;
+                let resolveInterval = null;
+                let isHovered = false;
+
+                function startShuffling() {
+                    if (resolveInterval) {
+                        clearInterval(resolveInterval);
+                        resolveInterval = null;
+                    }
+                    if (shuffleInterval) return;
+                    isHovered = true;
+                    el.classList.add('binary-shuffling');
+
+                    shuffleInterval = setInterval(() => {
+                        const shuffled = originalText.split('').map(char => {
+                            if (char === ' ') return ' ';
+                            return Math.random() > 0.5 ? '1' : '0';
+                        }).join('');
+                        el.textContent = shuffled;
+                    }, 40);
+                }
+
+                function stopAndRestore() {
+                    isHovered = false;
+                    clearInterval(shuffleInterval);
+                    shuffleInterval = null;
+
+                    const chars = el.textContent.split('');
+                    const orig = originalText.split('');
+                    let step = 0;
+                    const totalSteps = orig.length;
+
+                    resolveInterval = setInterval(() => {
+                        let allDone = true;
+                        for (let i = 0; i < orig.length; i++) {
+                            if (orig[i] === ' ') continue;
+                            if (i <= step) {
+                                chars[i] = orig[i];
+                            } else {
+                                allDone = false;
+                                chars[i] = Math.random() > 0.5 ? '1' : '0';
+                            }
+                        }
+                        el.textContent = chars.join('');
+                        step++;
+
+                        if (step > totalSteps || allDone) {
+                            clearInterval(resolveInterval);
+                            resolveInterval = null;
+                            el.textContent = originalText;
+                            el.classList.remove('binary-shuffling');
+                        }
+                    }, 30);
+                }
+
+                el.addEventListener('mouseenter', startShuffling);
+                el.addEventListener('mouseleave', stopAndRestore);
+                el.addEventListener('mousemove', () => {
+                    if (!shuffleInterval) startShuffling();
+                });
+            });
         });
 
         function openTab(evt, tabName) {
@@ -799,7 +948,53 @@
             document.getElementById(tabName).classList.add("active");
             evt.currentTarget.classList.add("active");
         }
+
+        // Smooth scroll progress, scroll spy, and back-to-top toggle
+        window.addEventListener('scroll', function () {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
+            const progressBar = document.getElementById('scrollProgressBar');
+            if (progressBar) {
+                progressBar.style.width = scrollPercent + '%';
+            }
+
+            const backToTop = document.getElementById('backToTop');
+            if (backToTop) {
+                if (scrollTop > 400) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            }
+
+            const sections = document.querySelectorAll('section[id]');
+            let currentSection = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 140;
+                const sectionHeight = section.offsetHeight;
+                if (scrollTop >= sectionTop && scrollTop < sectionTop + sectionHeight) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            if (currentSection) {
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    if (link.getAttribute('href') === '#' + currentSection) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+        }, { passive: true });
     </script>
+
+    <!-- Floating Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fas fa-chevron-up"></i>
+    </button>
 
 </body>
 
